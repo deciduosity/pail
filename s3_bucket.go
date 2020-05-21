@@ -16,8 +16,8 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/mongodb/grip"
-	"github.com/mongodb/grip/message"
+	"github.com/deciduosity/grip"
+	"github.com/deciduosity/grip/message"
 	"github.com/pkg/errors"
 )
 

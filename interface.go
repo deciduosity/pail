@@ -15,11 +15,6 @@ import (
 // operations across all projects. There should be no interface
 // dependencies on external packages required to use this library.
 //
-// See, the following implemenations for previous approaches.
-//
-//   - https://github.com/evergreen-ci/evergreen/blob/master/thirdparty/s3.go
-//   - https://github.com/mongodb/curator/tree/master/sthree
-//
 // The preferred aws sdk is here: https://docs.aws.amazon.com/sdk-for-go/api/
 //
 // In no particular order:
@@ -116,8 +111,8 @@ type CopyOptions struct {
 // Iterator
 // While iterators (typically) use channels internally, this is a
 // fairly standard paradigm for iterating through resources, and is
-// use heavily in the FTDC library (https://github.com/mongodb/ftdc)
-// and bson (https://godoc.org/github.com/mongodb/mongo-go-driver/bson)
+// use heavily in the FTDC library (https://github.com/deciduosity/ftdc)
+// and bson (https://godoc.org/github.com/deciduosity/mongo-go-driver/bson)
 // libraries.
 
 // BucketIterator provides a way to interact with the contents of a

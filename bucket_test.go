@@ -20,7 +20,6 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	mgo "gopkg.in/mgo.v2"
 )
 
 func newUUID() string {
@@ -46,11 +45,6 @@ func TestBucket(t *testing.T) {
 	require.NoError(t, err, os.MkdirAll(filepath.Join(tempdir, uuid), 0700))
 
 	mdburl := "mongodb://localhost:27017"
-	ses, err := mgo.DialWithTimeout(mdburl, time.Second)
-	require.NoError(t, err)
-	defer ses.Close()
-	defer func() { assert.NoError(t, ses.DB(uuid).DropDatabase()) }()
-
 	s3BucketName := "build-test-curator"
 	s3Prefix := newUUID() + "-"
 	s3Region := "us-east-1"
@@ -199,41 +193,6 @@ func TestBucket(t *testing.T) {
 				})
 				require.NoError(t, err)
 				return b
-			},
-		},
-		{
-			name: "LegacyGridFS",
-			constructor: func(t *testing.T) Bucket {
-				require.NoError(t, client.Database(uuid).Drop(ctx))
-				b, err := NewLegacyGridFSBucketWithSession(ses.Clone(), GridFSOptions{
-					Name:     newUUID(),
-					Prefix:   newUUID(),
-					Database: uuid,
-				})
-				require.NoError(t, err)
-				return b
-			},
-			tests: []bucketTestCase{
-				{
-					id: "VerifyBucketType",
-					test: func(t *testing.T, b Bucket) {
-						bucket, ok := b.(*gridfsLegacyBucket)
-						require.True(t, ok)
-						assert.NotNil(t, bucket)
-					},
-				},
-				{
-					id: "OpenFailsWithClosedSession",
-					test: func(t *testing.T, b Bucket) {
-						bucket := b.(*gridfsLegacyBucket)
-						go func() {
-							time.Sleep(time.Millisecond)
-							bucket.session.Close()
-						}()
-						_, err := bucket.openFile(ctx, "foo", false)
-						assert.Error(t, err)
-					},
-				},
 			},
 		},
 		{
@@ -1470,8 +1429,6 @@ func setDryRun(b Bucket, set bool) {
 	switch i := b.(type) {
 	case *localFileSystem:
 		i.dryRun = set
-	case *gridfsLegacyBucket:
-		i.opts.DryRun = set
 	case *s3BucketSmall:
 		i.dryRun = set
 	case *s3BucketLarge:
@@ -1489,8 +1446,6 @@ func setDeleteOnSync(b Bucket, set bool) {
 	case *localFileSystem:
 		i.deleteOnPush = set
 		i.deleteOnPull = set
-	case *gridfsLegacyBucket:
-		i.opts.DeleteOnSync = set
 	case *s3BucketSmall:
 		i.deleteOnPush = set
 		i.deleteOnPull = set
